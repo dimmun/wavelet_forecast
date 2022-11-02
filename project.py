@@ -297,12 +297,13 @@ def plot_returns(returns_strategy, returns_prediction, print_only=False):
     print("trading summary")
     for i in range(len(returns_strategy)):
         if not print_only:
-            plt.figure()
-            plt.title("%d months predicted returns" % (i + 1))
-            p1, = plt.plot(returns_strategy[i])
-            p2, = plt.plot(returns_prediction[i])
-            plt.legend([p1, p2], ["actual returns", "predicted returns"])
-            plt.title("%d months predicted returns" % (i + 1))
+            if (i == 1) or (i == 3):
+                plt.figure()
+                plt.title("%d months predicted returns" % (i + 1))
+                p1, = plt.plot(returns_strategy[i])
+                p2, = plt.plot(returns_prediction[i])
+                plt.legend([p1, p2], ["actual returns", "predicted returns"])
+                plt.title("%d months predicted returns" % (i + 1))
         total_days = N_PRED
         win_days = sum(e > 0 for e in returns_strategy[i])
         lose_days = sum(e < 0 for e in returns_strategy[i])
@@ -328,11 +329,12 @@ def plot_balance(balance_data, balance_strategy, print_only=False):
         max_drawdown_data = 100 * max_drawdown(balance_data)
         max_drawdown_strategy = 100 * max_drawdown(balance_strategy[j][:])
         if not print_only:
-            if j == 2:
+            if (j == 2) or (j == 4):
                 plt.figure()
-                plt.plot(time, balance_data)
-                plt.plot(time, balance_strategy[j])
+                p1, = plt.plot(time, balance_data)
+                p2, = plt.plot(time, balance_strategy[j])
                 plt.title("balance for %d months strategy" % (4))
+                plt.legend([p1, p2], ["sharpe_data", "sharpe_strategy"])
         print (j + 1), "months:", "return =", "{0:.3f}".format(100 * (balance_strategy[j][-1] - 1.0)), "return_data =", "{0:.3f}".format(100 * (balance_data[-1] - 1.0)), \
               "Strategy Max drawdown =", "{0:.3f}".format(max_drawdown_strategy), "Max drawdown S&P500 =", "{0:.3f}".format(max_drawdown_data)
 
@@ -349,18 +351,19 @@ def plot_sharpe(returns_data, returns_strategy, print_only=False):
         #drawdown_strategy = 100 * np.abs(min(returns_strategy[j][:]))
         #drawdown_data = 100 * np.abs(min(returns_data[0][:]))
         if not print_only:
-            plt.figure()
-            plt.title("%d months Sharpe ratio" % (j + 1))
-            p1, = plt.plot(sharpe_data)
-            p2, = plt.plot(sharpe_strategy)
-            plt.ylim([-2.0, 2.0])
-            plt.legend([p1, p2], ["sharpe_data", "sharpe_strategy"])
+            if (j == 1) or (j == 3):
+                plt.figure()
+                plt.title("%d months Sharpe ratio" % (j + 1))
+                p1, = plt.plot(sharpe_data)
+                p2, = plt.plot(sharpe_strategy)
+                plt.ylim([-2.0, 2.0])
+                plt.legend([p1, p2], ["sharpe_data", "sharpe_strategy"])
         print (j + 1), "months:", "Sharpe_strategy =", "{0:.3f}".format(sharpe_strategy[-1]), "Sharpe_data =", "{0:.3f}".format(sharpe_data[-1])
         
 
 
 a, d, data_rec = decomposition(data=data, n_levels=N_levels, wavelet=wavelet, mode=mode)
-#plot_decomposition(data, a, d, data_rec, title=title) 
+plot_decomposition(data, a, d, data_rec, title=title) 
 data_today, data_ahead = get_data(data=data)
 data_prediction_1 = get_prediction(data=data, n_levels=N_levels, wavelet=wavelet, mode=mode, a_spline_order=5, d_spline_order=5, method="Fourier")
 data_prediction_2 = get_prediction(data=data, n_levels=N_levels, wavelet=wavelet, mode=mode, a_spline_order=1, d_spline_order=5, method="Fourier")
@@ -369,7 +372,7 @@ returns_data, returns_prediction_1 = get_returns(data_today=data_today, data_ahe
 returns_data, returns_prediction_2 = get_returns(data_today=data_today, data_ahead=data_ahead, data_prediction=data_prediction_2)
 returns_data, returns_prediction_3 = get_returns(data_today=data_today, data_ahead=data_ahead, data_prediction=data_prediction_3)
 returns_prediction = np.where((np.sign(returns_prediction_1) == np.sign(returns_prediction_2)) & ((np.sign(returns_prediction_2) == np.sign(returns_prediction_3))), 0.333 * (returns_prediction_1 + returns_prediction_2 + returns_prediction_3), 0.0)
-#returns_prediction = np.where(np.sign(returns_prediction_1) != np.sign(returns_prediction_2), 0.0, 0.5 * (returns_prediction_1 + returns_prediction_2))
+returns_prediction = np.where(np.sign(returns_prediction_1) != np.sign(returns_prediction_2), 0.0, 0.5 * (returns_prediction_1 + returns_prediction_2))
 balance_data, balance_strategy, returns_strategy = get_balance(data=data, returns_data=returns_data, returns_prediction=returns_prediction)
 plot_balance(balance_data, balance_strategy, print_only=False)
 plot_sharpe(returns_data, returns_strategy, print_only=True)
